@@ -29,6 +29,7 @@ for skill_name, info in skill_dict.items():
             skill = Skill(
                 id = str(id_counter),
                 skill = alias,
+                display_name = source.get('displayName'),
                 shortDescription = source.get('shortDescription'),
                 longDescription = source.get('longDescription'),
             )
