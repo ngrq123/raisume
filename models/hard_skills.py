@@ -5,7 +5,7 @@ Hard Skills
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
-class HardSkills(BaseModel):
+class HardSkill(BaseModel):
     """
     The hard skills class represents a hard skill in the Cosmic Works dataset.
 
@@ -30,12 +30,12 @@ class HardSkills(BaseModel):
         """
         populate_by_name = True
 
-class HardSkillsList(BaseModel):
+class HardSkillList(BaseModel):
     """
     The HardSkillsList class represents a list of hard skills.
     This class is used when deserializing a collection/array
     of hard skills.
     """
-    items: List[HardSkills]
+    items: List[HardSkill]
 
 
