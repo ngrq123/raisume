@@ -22,7 +22,7 @@ chat_client = AzureOpenAI(
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-    _file = open('.\prompt_templates\system_prompt.txt', 'r', encoding='utf-8')
+    _file = open(os.path.join('.', 'prompt_templates', 'system_prompt.txt'), 'r', encoding='utf-8')
     system_prompt = _file.read()
     _file.close()
     st.session_state.messages.append({"role": "system", "content": system_prompt})
