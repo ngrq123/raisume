@@ -39,35 +39,94 @@ class VectorStore_Utils():
         This will be used to vectorize document data and incoming user messages for a similarity search with
         the vector index.
         '''
-        response = self.ai_client.embeddings.create(input=text, model=self.EMBEDDINGS_DEPLOYMENT_NAME)
-        embeddings = response.data[0].embedding
-        time.sleep(0.5) # rest period to avoid rate limiting on AOAI
-        return embeddings
+        try:
+            response = self.ai_client.embeddings.create(input=text, model=self.EMBEDDINGS_DEPLOYMENT_NAME)
+            embeddings = response.data[0].embedding
+            time.sleep(0.5) # rest period to avoid rate limiting on AOAI
+            return embeddings
+
+        except httpx.HTTPStatusError as http_err:
+            if http_err.response.status_code == 429: # Too Many Requests
+                retry_after = int(http_err.response.headers.get("Retry-After", 1))
+                time.sleep(retry_after)
+                return self.generate_embeddings(text) # Retry after delay
+            else:
+                raise
+        except Exception as e:
+            logger.error(f"Error generating embeddings: {e}")
+            raise 
     
+
+    # def add_collection_content_vector_field(self, collection_name: str, db):
+    #     '''
+    #     Add a new field to the collection to hold the vectorized content of each document.
+    #     '''
+    #     collection = db[collection_name]
+    #     bulk_operations = []
+    #     try:
+    #         with collection.find({}, no_cursor_timeout=True) as cursor:
+    #             # for doc in collection.find():
+    #             for doc in cursor:
+    #                 # remove any previous contentVector embeddings
+    #                 if "contentVector" in doc:
+    #                     del doc["contentVector"]
+
+    #                 # generate embeddings for the document string representation
+    #                 content = json.dumps(doc, default=str)
+    #                 content_vector = self.generate_embeddings(content)       
+                    
+    #                 bulk_operations.append(pymongo.UpdateOne(
+    #                     {"_id": doc["_id"]},
+    #                     {"$set": {"contentVector": content_vector}},
+    #                     upsert=True
+    #                 ))
+    #             # execute bulk operations
+    #             collection.bulk_write(bulk_operations)
+    #             logger.info(f"Vector field created for the {collection_name} collection")
+        
+    #     except pymongo.errors.CursorNotFound:
+    #         logger.error("Cursor expired. Handle accordingly.")
+    #     except Exception as e:
+    #         logger.error(f"Error processing documents: {e}")
+    #     finally:
+    #         cursor.close()
 
     def add_collection_content_vector_field(self, collection_name: str, db):
         '''
         Add a new field to the collection to hold the vectorized content of each document.
         '''
         collection = db[collection_name]
-        bulk_operations = []
-        for doc in collection.find():
-            # remove any previous contentVector embeddings
-            if "contentVector" in doc:
-                del doc["contentVector"]
+        
+        def process_documents(skip_count=0):
+            try:
+                with collection.find({}, no_cursor_timeout=True).skip(skip_count) as cursor:
+                    for doc in cursor:
+                        # Remove any previous contentVector embeddings
+                        if "contentVector" in doc:
+                            del doc["contentVector"]
 
-            # generate embeddings for the document string representation
-            content = json.dumps(doc, default=str)
-            content_vector = self.generate_embeddings(content)       
-            
-            bulk_operations.append(pymongo.UpdateOne(
-                {"_id": doc["_id"]},
-                {"$set": {"contentVector": content_vector}},
-                upsert=True
-            ))
-        # execute bulk operations
-        collection.bulk_write(bulk_operations)
-        logger.info(f"Vector field created for the {collection_name} collection")
+                        # Generate embeddings for the document string representation
+                        content = json.dumps(doc, default=str)
+                        content_vector = self.generate_embeddings(content)
+
+                        collection.update_one(
+                            {"_id": doc["_id"]},
+                            {"$set": {"contentVector": content_vector}},
+                            upsert=True
+                        )
+                        
+                        # Keep track of processed documents
+                        skip_count += 1
+
+            except pymongo.errors.CursorNotFound:
+                logger.error("Cursor expired. Resuming from last processed document.")
+                process_documents(skip_count)  # Recursively continue from the last processed document
+            except Exception as e:
+                logger.error(f"Error processing documents: {e}")
+                raise
+
+        # Start processing documents
+        process_documents()
 
     
     def create_vector_index(self, collection_name, db):
@@ -135,7 +194,7 @@ if __name__ == "__main__":
     vector_store.create_vector_index("test", cosmosdb.db)
 
     # Drop Collection
-    cosmosdb.drop_db_collection("skill")
+    cosmosdb.drop_db_collection("test")
 
 
 
