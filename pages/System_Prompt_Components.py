@@ -81,8 +81,12 @@ OUTPUT
 """
 
 format = """
-Output one JSON object in the exact same schema as the example, without any accompanying text of any kind. `skills` are skills that are explicitly mentioned in the input, while `predicted_skills` are inferred by you (along with providing a confidence prediction on how likely the candidate possesses this skill). Try to have at least one skill per bullet point or sentence. Have at least twice the number of predicted skills compared to skills.
+Output one JSON object in the exact same schema as the example, without any accompanying text of any kind. `skills` are skills that are explicitly mentioned in the input, while `predicted_skills` are inferred by you (along with providing a confidence prediction on how likely the candidate possesses this skill). Try to have at least one skill per bullet point or sentence. Have at least double the number of predicted skills compared to skills. For the same skill in multiple job experiences, be sure to add the `total_length_in_months` (for example 3 year and 4 year jobs adds up to 84), and combine `keywords` and `associated_with`. Make sure `total_length_in_months` adds up to the durations of the `associated_with` jobs.
 """
+
+st.header('System Prompt Components')
+
+st.write('The system prompt follows Jeff Su\'s 6 key components that make up the perfect formula for ChatGPT and Google Bard: Task, Context, Exemplars, Persona, Format, and Tone. https://youtu.be/jC4v5AS4RIM?si=Sf91kAmSAOSuqU7Z')
 
 for text, component in [
     (persona, 'Persona'),
