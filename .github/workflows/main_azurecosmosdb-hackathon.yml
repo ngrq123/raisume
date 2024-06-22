@@ -58,6 +58,9 @@ jobs:
       - name: Unzip artifact for deployment
         run: unzip release.zip
 
+      - name: Run app
+        run: ./run.sh
+      
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
         id: deploy-to-webapp
@@ -65,3 +68,4 @@ jobs:
           app-name: 'azurecosmosdb-hackathon'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_FB83525978824C1E8E6DEFAF9CBC02F5 }}
+          
