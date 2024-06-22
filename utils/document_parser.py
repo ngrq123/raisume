@@ -24,7 +24,6 @@ def get_document_contents(file):
 
     paragraphs = []
     for paragraph in result.paragraphs:
-        print(paragraph.role, paragraph.content)
         if paragraph.role == 'sectionHeading':
             paragraphs.append('')
         paragraphs.append(paragraph.content)
