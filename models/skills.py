@@ -1,24 +1,26 @@
 """
-Hard Skills
+Skills
 """
+
+import pandas as pd
 
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
-class HardSkill(BaseModel):
+class Skill(BaseModel):
     """
-    The hard skills class represents a hard skill in the Cosmic Works dataset.
+    The skills class represents a skill in the Cosmic Works dataset.
 
     The alias fields are used to map the dataset field names
     to the pythonic property names.
     """
     id: str = Field(alias="id")
-    hard_skill: str = Field(alias="hardSkill")
-    aliases: Optional[str]
+    skill: str = Field(alias="skill")
+    aliases: Optional[List[str]] = Field(default=None, alias="aliases")
     source_id: str = Field(alias="sourceId")
     display_name: str = Field(alias="sourceDisplayName")
-    shortDescription: str = Field(alias="ShortDescription")
-    longDescription: str = Field(alias="LongDescription")
+    shortDescription: str = Field(alias="shortDescription")
+    longDescription: str = Field(alias="longDescription")
     url: str = Field(alias="sourceURL")
 
     class Config:
@@ -30,12 +32,10 @@ class HardSkill(BaseModel):
         """
         populate_by_name = True
 
-class HardSkillList(BaseModel):
+class SkillList(BaseModel):
     """
-    The HardSkillsList class represents a list of hard skills.
+    The SkillsList class represents a list of  skills.
     This class is used when deserializing a collection/array
-    of hard skills.
+    of  skills.
     """
-    items: List[HardSkill]
-
-
+    items: List[Skill]
