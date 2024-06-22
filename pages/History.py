@@ -15,7 +15,7 @@ def skills_json_to_df(_json, key):
                 value = ' | '.join(value)
             skill_flattened[key] = value
         skills_flattened.append(skill_flattened)
-    return pd.read_json(json.dumps(skills_flattened), orient='records')
+    return pd.DataFrame.from_records(skills_flattened)
 
 
 st.header('Message History')
@@ -23,7 +23,12 @@ st.header('Message History')
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+    _file = open('.\prompt_templates\system_prompt.txt', 'r', encoding='utf-8')
+    system_prompt = _file.read()
+    _file.close()
     st.session_state.messages.append({"role": "system", "content": system_prompt})
+    
     st.session_state.messages.append({"role": "assistant", "content": 'Hello 👋'})
 
 has_history = False
