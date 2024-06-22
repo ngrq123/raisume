@@ -8,7 +8,7 @@ from db_utils import CosmosDB_Utils
 # Load in the skills
 with open('./assets/skills.json') as f:
     skill_dict = json.load(f)
-
+print(len(skill_dict))
 # Process the skills dictionary
 list_of_skills = []
 id_counter = 0
@@ -18,29 +18,28 @@ for skill_name, info in skill_dict.items():
 
     # Ensure there is at least one alias and one source, if empty, use None
     if not aliases:
-        aliases = None
+        aliases = [skill_name]
+    else:
+        aliases.append(skill_name)
     if not sources:
         sources = [{}]
 
-    for source in sources:
-        skill = Skill(
-            id = str(id_counter),
-            skill = skill_name,
-            aliases = aliases,
-            source_id = source.get('id'),
-            display_name = source.get('displayName'),
-            shortDescription = source.get('shortDescription'),
-            longDescription = source.get('longDescription'),
-            url = source.get('url')
-        )
+    for alias in aliases:
+        for source in sources:
+            skill = Skill(
+                id = str(id_counter),
+                skill = alias,
+                shortDescription = source.get('shortDescription'),
+                longDescription = source.get('longDescription'),
+            )
 
-        list_of_skills.append(skill)
-        
-        id_counter += 1
+            id_counter += 1
+            
+            list_of_skills.append(skill)
 
 # Initialize the DB
 cosmosdb = CosmosDB_Utils()
 cosmosdb.collection = cosmosdb.db.skill
 
-# # Bulk Insertion
+# Bulk Insertion
 cosmosdb.bulk_upsert_data(list_of_skills)
