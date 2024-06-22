@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import streamlit as st
 
 load_dotenv()
+st.set_page_config(layout='wide')
 
 # Load client
 chat_client = AzureOpenAI(
