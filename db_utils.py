@@ -4,7 +4,7 @@ import logging
 
 from pprint import pprint
 from dotenv import load_dotenv
-from models.hard_skills import HardSkill
+from models.skills import Skill
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -65,7 +65,8 @@ class CosmosDB_Utils:
             [
                 pymongo.UpdateOne(
                     {"id" : data.id},
-                    {"$set" : data.model_dump(by_alias=True, upsert=True)}
+                    {"$set" : data.model_dump(by_alias=True)}
+                    , upsert=True
                 )
                 for data in list_of_data
             ]
@@ -88,12 +89,12 @@ if __name__ == "__main__":
 
     # Initialize
     cosmosdb = CosmosDB_Utils()
-    cosmosdb.collection = cosmosdb.db.hard_skills
+    cosmosdb.collection = cosmosdb.db.skill
 
     # Sample Data
-    sample_hard_skill = HardSkill(
+    sample_skill = Skill(
         id = "1",
-        hard_skill = ".net",
+        skill = ".net",
         aliases = None,
         source_id = "stackshare..net",
         display_name = ".NET",
@@ -103,16 +104,16 @@ if __name__ == "__main__":
     )
 
     # Insert data
-    # cosmosdb.insert_single_data(sample_hard_skill)
+    cosmosdb.insert_single_data(sample_skill)
 
     # Read data
     retrieved_document = cosmosdb.read_document("1")
-    retrieved_hard_skill = HardSkill(**retrieved_document)
+    retrieved_skill = Skill(**retrieved_document)
     # Print the retrieved product
-    print("\nCast HardSkill from document:")
-    print(retrieved_hard_skill)
+    print("\nCast Skill from document:")
+    print(retrieved_skill)
 
     # Drop Collection
-    cosmosdb.drop_db_collection("hard_skills")
+    cosmosdb.drop_db_collection("skill")
 
 
