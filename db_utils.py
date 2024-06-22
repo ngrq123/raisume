@@ -10,10 +10,6 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def hello_world():
-    print("Hello World")
-
-
 class CosmosDB_Utils:
 
     DB_CONNECTION_STRING = os.environ.get("DB_CONNECTION_STRING")
@@ -89,11 +85,11 @@ if __name__ == "__main__":
 
     # Initialize
     cosmosdb = CosmosDB_Utils()
-    cosmosdb.collection = cosmosdb.db.skill
+    cosmosdb.collection = cosmosdb.db.test
 
     # Sample Data
     sample_skill = Skill(
-        id = "1",
+        id = "0",
         skill = ".net",
         aliases = None,
         source_id = "stackshare..net",
@@ -114,6 +110,6 @@ if __name__ == "__main__":
     print(retrieved_skill)
 
     # Drop Collection
-    cosmosdb.drop_db_collection("skill")
+    cosmosdb.drop_db_collection("test")
 
 
