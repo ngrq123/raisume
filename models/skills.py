@@ -16,12 +16,12 @@ class Skill(BaseModel):
     """
     id: str = Field(alias="id")
     skill: str = Field(alias="skill")
-    aliases: Optional[List[str]] = Field(default=None, alias="aliases")
-    source_id: str = Field(alias="sourceId")
-    display_name: str = Field(alias="sourceDisplayName")
+    # aliases: Optional[List[str]] = Field(default=None, alias="aliases")
+    # source_id: str = Field(alias="sourceId")
+    # display_name: str = Field(alias="sourceDisplayName")
     shortDescription: str = Field(alias="shortDescription")
     longDescription: str = Field(alias="longDescription")
-    url: str = Field(alias="sourceURL")
+    # url: str = Field(alias="sourceURL")
 
     class Config:
         """
