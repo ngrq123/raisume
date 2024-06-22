@@ -57,9 +57,6 @@ jobs:
 
       - name: Unzip artifact for deployment
         run: unzip release.zip
-
-      - name: Run app
-        run: ./run.sh
       
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
