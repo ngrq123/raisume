@@ -31,8 +31,8 @@ class CosmosDB_Utils:
         logger.info(f"Inserted hard skill with ID: {inserted_id}")
 
 
-    def read_document(self, id):
-        retrieved_document = self.collection.find_one({"id": id})
+    def read_document(self, skill):
+        retrieved_document = self.collection.find_one({"skill": skill})
 
         logger.info("JSON Document retrieved from the database!")
         pprint(retrieved_document)
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     cosmosdb.insert_single_data(sample_skill)
 
     # Read data
-    retrieved_document = cosmosdb.read_document("1")
+    retrieved_document = cosmosdb.read_document(".net")
     retrieved_skill = Skill(**retrieved_document)
     # Print the retrieved product
     print("\nCast Skill from document:")
