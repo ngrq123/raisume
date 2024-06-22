@@ -1,13 +1,17 @@
 import pandas as pd
 import json
-
+import logging
 
 from models.skills import Skill
 from db_utils import CosmosDB_Utils
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Load in the skills
 with open('./assets/skills.json') as f:
     skill_dict = json.load(f)
+logger.info('Skills JSON loaded into Python. Processing...')
 print(len(skill_dict))
 # Process the skills dictionary
 list_of_skills = []
@@ -38,9 +42,13 @@ for skill_name, info in skill_dict.items():
             
             list_of_skills.append(skill)
 
+logger.info(f"Number of skills processed: {id_counter}")
+
 # Initialize the DB
+logger.info('Initialize CosmosDB instance')
 cosmosdb = CosmosDB_Utils()
 cosmosdb.collection = cosmosdb.db.skill
 
 # Bulk Insertion
+logger.info('Loading skills data into CosmosDB')
 cosmosdb.bulk_upsert_data(list_of_skills)
