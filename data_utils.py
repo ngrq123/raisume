@@ -48,3 +48,4 @@ class Data_Utils():
                     list_of_skills.append(skill)
 
         logger.info(f"Number of skills processed: {id_counter}")
+        return list_of_skills
