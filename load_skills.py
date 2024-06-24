@@ -23,9 +23,6 @@ logger.info('Skills JSON loaded into Python. Processing...')
 # Process the skills dictionary
 list_of_skills = data_utils.process_skill_dict(skill_dict)
 
-logger.info(list_of_skills)
-sys.exit()
-
 # Initialize the DB
 logger.info('Initialize CosmosDB instance')
 cosmosdb = CosmosDB_Utils()

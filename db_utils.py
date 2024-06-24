@@ -199,6 +199,11 @@ class CosmosDB_Utils:
         results = collection.aggregate(pipeline)
         return results
 
+    def print_vector_search_result(self, result, list_of_document_fields):
+        print(f"_id: {result['document']['_id']}\n")
+        print(f"Similarity Score: {result['similarityScore']}") 
+        for field in list_of_document_fields:
+            print(f"{field}: {result['document'][field]}")
 
 if __name__ == "__main__":
 
