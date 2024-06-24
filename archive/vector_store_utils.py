@@ -16,16 +16,14 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 class VectorStore_Utils():
-
-    CONNECTION_STRING = os.environ.get("DB_CONNECTION_STRING")
-    EMBEDDINGS_DEPLOYMENT_NAME = os.environ.get("EMBEDDINGS_DEPLOYMENT_NAME")
-    COMPLETIONS_DEPLOYMENT_NAME = os.environ.get("COMPLETIONS_DEPLOYMENT_NAME")
-    AOAI_ENDPOINT = os.environ.get("AOAI_ENDPOINT")
-    AOAI_API_KEY = os.environ.get("AOAI_KEY")
-    AOAI_API_VERSION = os.environ.get("AOAI_API_VERSION")
     
     def __init__(self):
-
+        self.CONNECTION_STRING = os.environ.get("DB_CONNECTION_STRING")
+        self.EMBEDDINGS_DEPLOYMENT_NAME = os.environ.get("EMBEDDINGS_DEPLOYMENT_NAME")
+        self.COMPLETIONS_DEPLOYMENT_NAME = os.environ.get("COMPLETIONS_DEPLOYMENT_NAME")
+        self.AOAI_ENDPOINT = os.environ.get("AOAI_ENDPOINT")
+        self.AOAI_API_KEY = os.environ.get("AOAI_KEY")
+        self.AOAI_API_VERSION = os.environ.get("AOAI_API_VERSION")
         self.ai_client = AzureOpenAI(
             azure_endpoint = self.AOAI_ENDPOINT,
             api_version = self.AOAI_API_VERSION,
@@ -131,7 +129,7 @@ class VectorStore_Utils():
     
     def create_vector_index(self, collection_name, db):
         db.command({
-            'createIndexes': 'products',
+            'createIndexes': collection_name,
             'indexes': [
                 {
                     'name': 'VectorSearchIndex',
@@ -148,6 +146,14 @@ class VectorStore_Utils():
             ]
         })
         logger.info(f"Vector index created for the {collection_name} collection")
+
+    def drop_index(self, collection_name, index_name):
+        try:
+            collection = self.db[collection_name]
+            collection.drop_index(index_name)
+            logger.info(f"Index {index_name} dropped from the {collection_name} collection")
+        except Exception as e:
+            logger.error(f"Error dropping index {index_name} from the {collection_name} collection: {e}")
 
 if __name__ == "__main__":
 
