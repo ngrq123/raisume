@@ -24,7 +24,6 @@ class CosmosDB_Utils:
         self.AOAI_API_VERSION = os.environ.get("AOAI_API_VERSION")
         self.EMBEDDINGS_DEPLOYMENT_NAME = os.environ.get("EMBEDDINGS_DEPLOYMENT_NAME")
         self.COMPLETIONS_DEPLOYMENT_NAME = os.environ.get("COMPLETIONS_DEPLOYMENT_NAME")
-        self.system_prompt = Config.SYSTEM_PROMPT_DIR
         self.client = pymongo.MongoClient(self.DB_CONNECTION_STRING)
         self.db = self.client.cosmic_works
         self.collection = None
@@ -33,6 +32,9 @@ class CosmosDB_Utils:
             api_version = self.AOAI_API_VERSION,
             api_key = self.AOAI_KEY
         )
+        _file = open(os.path.join('.', 'prompt_templates', 'system_prompt.txt'), 'r', encoding='utf-8')
+        self.system_prompt = _file.read()
+        _file.close()
         logger.info("Please create collection upon successful initialization.")
 
 
@@ -209,31 +211,27 @@ class CosmosDB_Utils:
             print(f"{field}: {result['document'][field]}")
 
     
-    def rag_with_vector_search(self, collection_name, question: str, num_results: int = 3):
+    def get_grounding_data_from_vector_search(self, collection_name, question: str, num_results: int = 3):
         """
         Use the RAG model to generate a prompt using vector search results based on the
         incoming question.  
         """
         # perform the vector search and build product list
         results = self.vector_search(collection_name, question, num_results=num_results)
-        grounding_data = ""
+        grounding_data = "These skills are likely relevant to the previous user message:" + "\n"
         for result in results:
             if "contentVector" in result["document"]:
                 del result["document"]["contentVector"]
             grounding_data += json.dumps(result["document"], indent=4, default=str) + "\n\n"
+        return grounding_data
 
-        # generate prompt for the LLM with vector results
-        formatted_prompt = self.system_prompt + grounding_data
 
-        # prepare the LLM request
-        messages = [
-            {"role": "system", "content": formatted_prompt},
-            {"role": "user", "content": question}
-        ]
-
-        completion = self.ai_client.chat.completions.create(messages=messages, model=self.COMPLETIONS_DEPLOYMENT_NAME)
-        return completion.choices[0].message.content
-
+# Grounding Data
+# Write-Up
+# System Diagrams
+# 1: draw.io system diagram
+# 2: draw.io LLM system diagram
+# 3: powerpoint System > User > System > Assistant > User > System > Assistant etc.
 
 if __name__ == "__main__":
 
@@ -274,14 +272,12 @@ if __name__ == "__main__":
 
     # Vector Search
     query = "What is data science?"
+    results = cosmosdb.vector_search("skill", query, num_results=4)
+    print(cosmosdb.get_grounding_data_from_vector_search("skill", query))
+
+    # query = "Tell me about yourself"
     # results = cosmosdb.vector_search("skill", query, num_results=4)
-
-    # for result in results['document'].items():
-    #     print(result)
-    print(cosmosdb.rag_with_vector_search("skill", query))
-
-    query = "Tell me about yourself"
-    print(cosmosdb.rag_with_vector_search("skill", query))
+    # print(cosmosdb.get_grounding_data_from_vector_search("skill", query))
 
 
 
