@@ -3,6 +3,7 @@ import os
 
 from openai import AzureOpenAI
 from dotenv import load_dotenv
+from db_utils import CosmosDB_Utils
 
 import streamlit as st
 
@@ -15,6 +16,10 @@ chat_client = AzureOpenAI(
   api_key=os.getenv('AOAI_KEY'),
   api_version=os.getenv('AOAI_API_VERSION')
 )
+
+# Initialize DB_Utils
+cosmosdb = CosmosDB_Utils()
+cosmosdb.collection = cosmosdb.db.skill
 
 
 
@@ -47,11 +52,18 @@ if prompt:
         message_history = message_history + st.session_state.messages[-2:]  # Limit to system prompt and last 2 messages
         valid_json = False
         while not valid_json:
+            # response = chat_client.chat.completions.create(messages=[{'role': m['role'], 'content': m['content']} for m in message_history], 
+            #                                             model=os.getenv('MODEL_NAME'), 
+            #                                             response_format={'type': 'json_object'},
+            #                                             stream=False)
+            # response_message = response.choices[0].message.content
+
             response = chat_client.chat.completions.create(messages=[{'role': m['role'], 'content': m['content']} for m in message_history], 
                                                         model=os.getenv('MODEL_NAME'), 
                                                         response_format={'type': 'json_object'},
                                                         stream=False)
             response_message = response.choices[0].message.content
+            
             try:
                 json.loads(response_message)
                 valid_json = True

@@ -209,13 +209,13 @@ class CosmosDB_Utils:
             print(f"{field}: {result['document'][field]}")
 
     
-    def rag_with_vector_search(self, question: str, num_results: int = 3):
+    def rag_with_vector_search(self, collection_name, question: str, num_results: int = 3):
         """
         Use the RAG model to generate a prompt using vector search results based on the
         incoming question.  
         """
         # perform the vector search and build product list
-        results = self.vector_search("products", question, num_results=num_results)
+        results = self.vector_search(collection_name, question, num_results=num_results)
         grounding_data = ""
         for result in results:
             if "contentVector" in result["document"]:
@@ -278,7 +278,10 @@ if __name__ == "__main__":
 
     # for result in results['document'].items():
     #     print(result)
-    print(cosmosdb.rag_with_vector_search(query))
+    print(cosmosdb.rag_with_vector_search("skill", query))
+
+    query = "Tell me about yourself"
+    print(cosmosdb.rag_with_vector_search("skill", query))
 
 
 
