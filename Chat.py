@@ -13,7 +13,7 @@ st.set_page_config(layout='wide')
 chat_client = AzureOpenAI(
   azure_endpoint=os.getenv('AOAI_ENDPOINT'),
   api_key=os.getenv('AOAI_KEY'),
-  api_version=os.getenv('API_VERSION')
+  api_version=os.getenv('AOAI_API_VERSION')
 )
 
 

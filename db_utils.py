@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from openai import AzureOpenAI
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 from models.skills import Skill
+from config import Config
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -22,6 +23,8 @@ class CosmosDB_Utils:
         self.AOAI_KEY = os.environ.get("AOAI_KEY")
         self.AOAI_API_VERSION = os.environ.get("AOAI_API_VERSION")
         self.EMBEDDINGS_DEPLOYMENT_NAME = os.environ.get("EMBEDDINGS_DEPLOYMENT_NAME")
+        self.COMPLETIONS_DEPLOYMENT_NAME = os.environ.get("COMPLETIONS_DEPLOYMENT_NAME")
+        self.system_prompt = Config.SYSTEM_PROMPT_DIR
         self.client = pymongo.MongoClient(self.DB_CONNECTION_STRING)
         self.db = self.client.cosmic_works
         self.collection = None
@@ -205,6 +208,33 @@ class CosmosDB_Utils:
         for field in list_of_document_fields:
             print(f"{field}: {result['document'][field]}")
 
+    
+    def rag_with_vector_search(self, question: str, num_results: int = 3):
+        """
+        Use the RAG model to generate a prompt using vector search results based on the
+        incoming question.  
+        """
+        # perform the vector search and build product list
+        results = self.vector_search("products", question, num_results=num_results)
+        grounding_data = ""
+        for result in results:
+            if "contentVector" in result["document"]:
+                del result["document"]["contentVector"]
+            grounding_data += json.dumps(result["document"], indent=4, default=str) + "\n\n"
+
+        # generate prompt for the LLM with vector results
+        formatted_prompt = self.system_prompt + grounding_data
+
+        # prepare the LLM request
+        messages = [
+            {"role": "system", "content": formatted_prompt},
+            {"role": "user", "content": question}
+        ]
+
+        completion = self.ai_client.chat.completions.create(messages=messages, model=self.COMPLETIONS_DEPLOYMENT_NAME)
+        return completion.choices[0].message.content
+
+
 if __name__ == "__main__":
 
     ### TEST DB CRUD ###
@@ -244,10 +274,12 @@ if __name__ == "__main__":
 
     # Vector Search
     query = "What is data science?"
-    results = cosmosdb.vector_search("skill", query, num_results=4)
+    # results = cosmosdb.vector_search("skill", query, num_results=4)
 
-    for result in results['document'].items():
-        print(result)
+    # for result in results['document'].items():
+    #     print(result)
+    print(cosmosdb.rag_with_vector_search(query))
+
 
 
 
