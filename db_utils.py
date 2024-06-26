@@ -180,15 +180,35 @@ class CosmosDB_Utils:
 
 
     ### Vector Search ###
-    def vector_search(self, collection_name, query, num_results=3):
+    def vector_search(self, collection_name, query, num_results=3, required_fields=None):
         """
         Perform a vector search on the specified collection by vectorizing
         the query and searching the vector index for the most similar documents.
 
         returns a list of the top num_results most similar documents
         """
+        if required_fields is None:
+            required_fields = []
+
         collection = self.db[collection_name]
-        query_embedding = self.generate_embeddings(query)    
+        query_embedding = self.generate_embeddings(query)   
+
+        # Create a projection dictionary to include only the required fields
+        projection = {field: 1 for field in required_fields}
+        projection['similarityScore'] = {'$meta': 'searchScore'}
+
+        # pipeline = [
+        #     {
+        #         '$search': {
+        #             "cosmosSearch": {
+        #                 "vector": query_embedding,
+        #                 "path": "contentVector",
+        #                 "k": num_results
+        #             },
+        #             "returnStoredSource": True }},
+        #     {'$project': { 'similarityScore': { '$meta': 'searchScore' }, 'document' : '$$ROOT' } }
+        # ]
+
         pipeline = [
             {
                 '$search': {
@@ -197,36 +217,36 @@ class CosmosDB_Utils:
                         "path": "contentVector",
                         "k": num_results
                     },
-                    "returnStoredSource": True }},
-            {'$project': { 'similarityScore': { '$meta': 'searchScore' }, 'document' : '$$ROOT' } }
+                    "returnStoredSource": True
+                }
+            },
+            {'$project': projection}
         ]
+
         results = collection.aggregate(pipeline)
         return results
+    
 
-    def print_vector_search_result(self, result, list_of_document_fields):
-        print(f"_id: {result['document']['_id']}\n")
-        print(f"Similarity Score: {result['similarityScore']}") 
-        for field in list_of_document_fields:
-            print(f"{field}: {result['document'][field]}")
+    def print_vector_search_result(self, result, required_fields):
+        print(f"_id: {result['_id']}\n")
+        print(f"Similarity Score: {result['similarityScore']}")
+        for field in required_fields:
+            print(f"{field}: {result.get(field, 'N/A')}")
 
     
-    def get_grounding_data_from_vector_search(self, collection_name, question: str, num_results: int = 3):
+    def get_grounding_data_from_vector_search(self, collection_name, question: str, num_results: int = 3, required_fields=None):
         """
         Use the RAG model to generate a prompt using vector search results based on the
         incoming question.  
         """
         # perform the vector search and build product list
-        results = self.vector_search(collection_name, question, num_results=num_results)
-        grounding_data = "These skills are likely relevant to the previous user message:" + "\n"
+        results = self.vector_search(collection_name, question, num_results=num_results, required_fields=required_fields)
+        grounding_data = "These skills are likely relevant to the previous user message:" + "\n\n"
         for result in results:
-            if "contentVector" in result["document"]:
-                del result["document"]["contentVector"]
-            grounding_data += json.dumps(result["document"], indent=4, default=str) + "\n\n"
+            grounding_data += json.dumps(result, default=str, indent=4) + "\n\n"
         return grounding_data
 
 
-# remove config.py, use os.path.join
-# Grounding Data
 # Write-Up
 # System Diagrams
 # 1: draw.io system diagram
@@ -270,10 +290,16 @@ if __name__ == "__main__":
     cosmosdb = CosmosDB_Utils()
     cosmosdb.collection = cosmosdb.db.skill
 
+    required_fields = [
+        "sourceDisplayName", "shortDescription", 'longDescription'
+    ]
+
     # Vector Search
     query = "What is data science?"
-    results = cosmosdb.vector_search("skill", query, num_results=4)
-    print(cosmosdb.get_grounding_data_from_vector_search("skill", query))
+    results = cosmosdb.vector_search("skill", query, num_results=4, required_fields=required_fields)
+    for result in results:
+        cosmosdb.print_vector_search_result(result, required_fields=required_fields)
+    print(cosmosdb.get_grounding_data_from_vector_search("skill", query, required_fields=required_fields))
 
     # query = "Tell me about yourself"
     # results = cosmosdb.vector_search("skill", query, num_results=4)
