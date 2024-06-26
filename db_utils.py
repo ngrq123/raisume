@@ -10,7 +10,6 @@ from openai import AzureOpenAI
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 
 from models.skills import Skill
-from config import Config
 from utils import prompt_utils
 
 load_dotenv()
@@ -226,6 +225,7 @@ class CosmosDB_Utils:
         return grounding_data
 
 
+# remove config.py, use os.path.join
 # Grounding Data
 # Write-Up
 # System Diagrams
