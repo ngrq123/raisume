@@ -37,6 +37,9 @@ required_fields = [
 if 'messages' not in st.session_state:
     st.session_state.messages = []
 
+with st.expander('System Prompt', expanded=False):
+        st.write(first_system_prompt)
+
 uploaded_file = st.file_uploader("Choose a docx/pdf file")
 if uploaded_file is not None:
     content = document_utils.get_document_contents(uploaded_file)
@@ -46,7 +49,7 @@ if uploaded_file is not None:
     messages.append({'role': 'user', 'content': content})
 
     rag_results = cosmosdb.get_grounding_data_from_vector_search('skill', content, num_results=50, required_fields=required_fields)
-    with st.expander('RAG Data', expanded=False):
+    with st.expander('System Prompt', expanded=False):
         st.write(rag_results)
     messages.append({'role': 'system', 'content': rag_results})
     
