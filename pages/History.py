@@ -13,48 +13,38 @@ def skills_json_to_df(_json, key):
         for key, value in skill.items():
             if isinstance(value, list):
                 value = ' | '.join(value)
-            skill_flattened[key] = value
+            skill_flattened[str(key).title().replace('_', ' ')] = value
         skills_flattened.append(skill_flattened)
     return pd.DataFrame.from_records(skills_flattened)
 
 
 st.header('Message History')
 
-# Initialize chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-    _file = open('.\prompt_templates\system_prompt.txt', 'r', encoding='utf-8')
-    system_prompt = _file.read()
-    _file.close()
-    st.session_state.messages.append({"role": "system", "content": system_prompt})
-    
-    st.session_state.messages.append({"role": "assistant", "content": 'Hello 👋'})
-
-has_history = False
-for idx, m in enumerate(st.session_state.messages):
-    role, content = m['role'], m['content']
-    # Get previous message
-    previous_message = st.session_state.messages[idx-1]
-    if role == 'assistant' and previous_message['role'] == 'user':  # Only process if previous message is user and current message is assistant
-            has_history = True
-            with st.chat_message('user'):
-                st.write(previous_message['content'])
-            with st.chat_message('assistant'):
-                print(content)
-                st.write(content)
-            # try:
-            #     _json = json.loads(content)
-            #     if 'skills' in _json:
-            #         df = skills_json_to_df(_json, 'skills')
-            #         expander = st.expander('Skills', expanded=True)
-            #         expander.dataframe(df, hide_index=True)
-            #     if 'predicted_skills' in _json:
-            #         skills_json_to_df(_json, 'predicted_skills')
-            #         expander = st.expander('Predicted Skills', expanded=True)
-            #         expander.dataframe(df, hide_index=True)
-            # except JSONDecodeError:
-            #     continue
+has_history = ('messages' in st.session_state)
 
 if not has_history:
     st.write('There are no messages. Interact with the chat first.')
+
+if has_history:
+    for m in st.session_state.messages:
+        role, content = m['role'], m['content']
+        
+        if role == 'user':
+            with st.chat_message('user'):
+                    st.write(content)
+        
+        if role == 'assistant':
+            with st.chat_message('assistant'):
+                try:
+                    _json = json.loads(content)
+                    st.subheader('Skills Identified by Gen AI')
+                    st.dataframe(skills_json_to_df(_json, 'skills'), hide_index=True)
+                    st.subheader('Predicted Skills by Gen AI')
+                    st.dataframe(skills_json_to_df(_json, 'predicted_skills'), hide_index=True)
+                except JSONDecodeError:
+                    st.write(content)
+
+        if role == 'system':
+            with st.chat_message('assistant'):
+                with st.expander('System Prompt'):
+                    st.write(content)

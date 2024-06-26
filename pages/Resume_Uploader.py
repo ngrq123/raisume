@@ -17,7 +17,7 @@ def skills_json_to_df(_json, key):
         for key, value in skill.items():
             if isinstance(value, list):
                 value = ' | '.join(value)
-            skill_flattened[key] = value
+            skill_flattened[str(key).title().replace('_', ' ')] = value
         skills_flattened.append(skill_flattened)
     return pd.DataFrame.from_records(skills_flattened)
 
@@ -42,10 +42,12 @@ if uploaded_file is not None:
     content = document_utils.get_document_contents(uploaded_file)
 
     with st.expander('Extracted Content', expanded=False):
-        st.text(content)
+        st.write(content)
     messages.append({'role': 'user', 'content': content})
 
     rag_results = cosmosdb.get_grounding_data_from_vector_search('skill', content, num_results=50, required_fields=required_fields)
+    with st.expander('RAG Data', expanded=False):
+        st.write(rag_results)
     messages.append({'role': 'system', 'content': rag_results})
     
     response = llm_utils.get_llm_response(llm_client,
