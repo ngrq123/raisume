@@ -27,32 +27,57 @@ We utilised the following resources and datasets for Raisume:
 - Azure Document Intelligence (layout model) to accurately extract plain text from documents
 - Skills Dataset (from Skill Extractor Cognitive Search) as documents for the RAG: https://github.com/microsoft/SkillsExtractorCognitiveSearch/blob/master/data/skills.json
 - Azure Cosmos DB, as a RAG, to store skills from the Skills Dataset, generate embeddings for each skill and perform vector searches for prompts/documents
-- Azure OpenAI to identify and infer skills from the prompt, results from the RAG and chat context
+- Azure OpenAI (ChatGPT 3.5 Turbo 16k) to identify and infer skills from the prompt, results from the RAG and chat context
 
 ## Functionalities
 
-### Resume Analyzer
+### Resume Analyser
 
-- Document intelligence
-- prompt engineering
-- RAG with cosmos db
-- openai force json
+The resume analyser is the front page of the Streamlit application, allowing users to upload a resume supported by Azure AI Document Intelligence, and utilising ChatGPT on Azure OpenAI to extract and identify skills stated and described in the resume respectively.
+
+Firstly, to parse documents, the Azure AI Document Intelligence Python SDK for the (prebuilt) layout model is used. This allows us to control how the parsed text is being fed to ChatGPT - the document can be segmented into multiple subheadings and paragraphs, where we ensured each paragrah starts with a new line and that there is an empty line before each subheading.
+
+Secondly, to help guide ChatGPT on the what to expect - and most importantly what the output should be like - the prompt engineering technique by Jeff Su is utilised, which comprises of six key components: Task, Context, Exemplars, Persona, Format, and Tone. (Su, 2023) Other than the tone component, we used these elements to create our first system prompt for all resume uploads. To ensure that ChatGPT returns a JSON object, `{'type': 'json_object'}` argument is being passed to the `response_format` parameter in `chat.completions.create()`.
+
+Thirdly, to guide the LLM towards identifying and inferring relevant skills, we utilised Cosmos DB as a RAG to retrieve relevant skills by using the resume content as the query. The skills dataset is preloaded and embedded, prior to performing a vector search to extract the 50 most similar skills in the MongoDB database. The results are then passed as a system prompt after the user prompt.
+
+Lastly, to validate ChatGPT's response, the response is being decoded using `json.loads()`. If the response is not a valid JSON, the Completions API will be called again.
+
+```python
+if isinstance(response_format, dict) and response_format['type'] == 'json_object':
+        # Check if valid json
+        num_retries = 0
+        valid_json = False
+        while (not valid_json) and (num_retries <= 3):
+            response_message = response.choices[0].message.content
+            try:
+                json.loads(response_message)
+                valid_json = ('skills' in response_message) and ('predicted_skills' in response_message)
+            except ValueError:
+                # Get another response
+                num_retries += 1
+                response = get_llm_response(chat_client, messages, response_format, stream)
+```
 
 ### Chat
 
-- Prompt engineering
-- RAG with cosmos db (refer to previous section)
-- openai (with response streaming)
+The chat feature in Rais is similar to many implementations of generative AI applications, allowing users to freely enter text and receive a response from the LLM. Similar to resume analyser, we utilised the five (out of six) components by Jeff Su to create our first system prompt for all chat instances. However, we only requested ChatGPT to include the skills tables (identified and inferred) in Markdown format, but did not validate the response as it is unstructured.
+
+Next, vector search is being performed on the RAG (elaborated in the previous section: Resume Analyser).
+
+Lastly, to show the response in real time, `stream=True` is passed into `chat.completions.create()`, along with all the chat history in `messages`.
+
 - Diagram for message flow
 
 ### Chat History
 
-- Aggregating all messages together in one view
+The chat history page displays all messages, from both the resume analyser and chat, in one page. This allows the user to look through all their interactions with ChatGPT, along with the engineered system prompts and RAG results.
 
 ## Challenges Faced
 
+- MongoDB cursor auto closing
 - SKU S0
-- Error 422 invalid string
+- Error 422 invalid string (Langchain)
 - Error 500 from ChatGPT
 - Tokens exceeded
 
@@ -65,11 +90,9 @@ Future enhancements for Rais include capabilities for resume and job description
 
 Rais can be expanded to assist applicants in finding the open job roles most relevant to their resumes, eliminating the need to browse through the company hiring portal. Moreover, Rais can answer any questions applicants may have about job descriptions and the company itself, providing a comprehensive and user-friendly experience.
 
-
 ## Rais It Now!
 
 App URL: https://azurecosmosdb-hackathon-eyc4g2chfgdbfhdg.eastus-01.azurewebsites.net/
-
 
 ## Phase 1 Screenshots
 
@@ -80,6 +103,13 @@ App URL: https://azurecosmosdb-hackathon-eyc4g2chfgdbfhdg.eastus-01.azurewebsite
 <img src="./images/phase_1_part_1_completion_email_rui_qin_ng.jpg" width="750" />
 <img src="./images/phase_1_part_2_completion_email_rui_qin_ng.jpg" width="750" />
 
+## Team Members Details
+
+|   Devpost Email       |   Devpost ID   |   Microsoft Email     |   Microsoft Learn Username   |
+| --------------------- | -------------- | --------------------- | ---------------------------- |
+| ngruiqin@outlook.com | ngruiqin       | ngruiqin@outlook.com | RuiQinNg-6520                |
+| e0175141@u.nus.edu   | e0175141       | e0175141@u.nus.edu   | JiaHwee-0311                 |
+
 ## References
 
 Glassdoor, 2016. Why Is Hiring So Hard for Employers Right Now? https://www.glassdoor.com/research/why-is-hiring-so-hard-right-now
@@ -87,3 +117,5 @@ Glassdoor, 2016. Why Is Hiring So Hard for Employers Right Now? https://www.glas
 Godbersen, 2023. 10 pain points of HR recruiters in large corporations and how Executive Search Firms can make their life easier: https://frankgodbersen.com/10-pain-points-of-hr-recruiters-in-large-corporations-and-how-executive-search-firms-can-make-their-life-easier/
 
 TalentEdge, 2024. What is the Role of an HR Recruiter? https://talentedge.com/articles/what-is-the-role-of-a-hr-recruiter/
+
+Su, 2023. Master the Perfect ChatGPT Prompt Formula (in just 8 minutes)! https://youtu.be/jC4v5AS4RIM
