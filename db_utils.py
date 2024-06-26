@@ -247,12 +247,6 @@ class CosmosDB_Utils:
         return grounding_data
 
 
-# Write-Up
-# System Diagrams
-# 1: draw.io system diagram
-# 2: draw.io LLM system diagram
-# 3: powerpoint System > User > System > Assistant > User > System > Assistant etc.
-
 if __name__ == "__main__":
 
     ### TEST DB CRUD ###
