@@ -8,7 +8,9 @@ from pprint import pprint
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 from tenacity import retry, wait_random_exponential, stop_after_attempt
+
 from models.skills import Skill
+from utils import prompt_utils
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -31,9 +33,7 @@ class CosmosDB_Utils:
             api_version = self.AOAI_API_VERSION,
             api_key = self.AOAI_KEY
         )
-        _file = open(os.path.join('.', 'prompt_templates', 'system_prompt.txt'), 'r', encoding='utf-8')
-        self.system_prompt = _file.read()
-        _file.close()
+        self.system_prompt = prompt_utils.get_first_system_prompt()
         logger.info("Please create collection upon successful initialization.")
 
 
