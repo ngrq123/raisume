@@ -23,7 +23,7 @@ st.header('Message History')
 has_history = ('messages' in st.session_state)
 
 if not has_history:
-    st.write('There are no messages. Interact with the chat first.')
+    st.write('There are no messages. Interact with the chat or upload a resume first.')
 
 if has_history:
     for m in st.session_state.messages:
