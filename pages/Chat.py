@@ -17,10 +17,12 @@ required_fields = [
     "sourceDisplayName", "shortDescription", 'longDescription'
 ]
 
+if ('messages' not in st.session_state):
+    st.session_state.messages = []
+
 # Initialize chat history
 chat_messages = list(filter(lambda m: 'from_chat' in m and m['from_chat'], st.session_state.messages))
-if ('messages' not in st.session_state) or (len(chat_messages) == 0):
-    st.session_state.messages = []
+if (len(chat_messages) == 0):
     system_prompt = prompt_utils.get_first_system_prompt()
     st.session_state.messages.append({"role": "system", "content": system_prompt, 'from_chat': True})
     st.session_state.messages.append({"role": "assistant", "content": 'Hello 👋', 'from_chat': True})
