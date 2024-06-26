@@ -20,6 +20,7 @@ Azure CosmosDB maintains a dynamic database of relevant skills, which serves as 
 
 ## System Design
 
+### System Overview
 <img src="./images/system_architecture.png" width="750" />
 
 We utilised the following resources and datasets for Raisume:
@@ -28,6 +29,13 @@ We utilised the following resources and datasets for Raisume:
 - Skills Dataset (from Skill Extractor Cognitive Search) as documents for the RAG: https://github.com/microsoft/SkillsExtractorCognitiveSearch/blob/master/data/skills.json
 - Azure Cosmos DB, as a RAG, to store skills from the Skills Dataset, generate embeddings for each skill and perform vector searches for prompts/documents
 - Azure OpenAI (ChatGPT 3.5 Turbo 16k) to identify and infer skills from the prompt, results from the RAG and chat context
+
+### LLM Architecture
+<img src="./images/LLM_architecture.png" width="750" />
+
+### Chat Feature
+<img src="./images/Chat_Feature.png" width="750" />
+
 
 ## Functionalities
 
