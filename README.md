@@ -20,7 +20,6 @@ Azure CosmosDB maintains a dynamic database of relevant skills, which serves as 
 
 ## System Design
 
-### System Overview
 <img src="./images/system_architecture.png" width="750" />
 
 We utilised the following resources and datasets for Raisume:
@@ -29,13 +28,6 @@ We utilised the following resources and datasets for Raisume:
 - Skills Dataset (from Skill Extractor Cognitive Search) as documents for the RAG: https://github.com/microsoft/SkillsExtractorCognitiveSearch/blob/master/data/skills.json
 - Azure Cosmos DB, as a RAG, to store skills from the Skills Dataset, generate embeddings for each skill and perform vector searches for prompts/documents
 - Azure OpenAI (ChatGPT 3.5 Turbo 16k) to identify and infer skills from the prompt, results from the RAG and chat context
-
-### LLM Architecture
-<img src="./images/LLM_architecture.png" width="750" />
-
-### Chat Feature
-<img src="./images/Chat_Feature.png" width="750" />
-
 
 ## Functionalities
 
@@ -48,6 +40,8 @@ Firstly, to parse documents, the Azure AI Document Intelligence Python SDK for t
 Secondly, to help guide ChatGPT on the what to expect - and most importantly what the output should be like - the prompt engineering technique by Jeff Su is utilised, which comprises of six key components: Task, Context, Exemplars, Persona, Format, and Tone. (Su, 2023) Other than the tone component, we used these elements to create our first system prompt for all resume uploads. To ensure that ChatGPT returns a JSON object, `{'type': 'json_object'}` argument is being passed to the `response_format` parameter in `chat.completions.create()`.
 
 Thirdly, to guide the LLM towards identifying and inferring relevant skills, we utilised Cosmos DB as a RAG to retrieve relevant skills by using the resume content as the query. The skills dataset is preloaded and embedded, prior to performing a vector search to extract the 50 most similar skills in the MongoDB database. The results are then passed as a system prompt after the user prompt.
+
+<img src="./images/LLM_architecture.png" width="750" />
 
 Lastly, to validate ChatGPT's response, the response is being decoded using `json.loads()`. If the response is not a valid JSON, the Completions API will be called again.
 
@@ -75,7 +69,7 @@ Next, vector search is being performed on the RAG (elaborated in the previous se
 
 Lastly, to show the response in real time, `stream=True` is passed into `chat.completions.create()`, along with all the chat history in `messages`.
 
-- Diagram for message flow
+<img src="./images/Chat_Feature.png" width="750" />
 
 ### Chat History
 
@@ -153,7 +147,12 @@ UnprocessableEntityError: Error code: 422 - {'detail': [{'type': 'string_type', 
 We continued to encounter this error despite trying out different Langchain versions. Thankfully, we were able utilize CosmosDB vector search as a perfect alternative to Langchain.
 
 - Error 500 from ChatGPT
-- Tokens exceeded
+
+ChatGPT can, at times, throw a HTTP 500 error which is not deterministic. However, there is a built-in retry function and we do not need to handle the error.
+
+- Token limit exceeded (ChatGPT)
+
+When the chat history is too long, the user might get an error where the number of tokens has exceeded the token limit. We changed to a model that allows a higher number of tokens, but in future work, a token counter like `tiktoken` should be used and chat contexts should be summarised or removed when the message history is too long.
 
 ## Future Work
 **Resume and Job Description Matching & Analytics**
