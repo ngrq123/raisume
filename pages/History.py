@@ -40,18 +40,21 @@ for idx, m in enumerate(st.session_state.messages):
             has_history = True
             with st.chat_message('user'):
                 st.write(previous_message['content'])
-            try:
-                _json = json.loads(content)
-                if 'skills' in _json:
-                    df = skills_json_to_df(_json, 'skills')
-                    expander = st.expander('Skills', expanded=True)
-                    expander.dataframe(df, hide_index=True)
-                if 'predicted_skills' in _json:
-                    skills_json_to_df(_json, 'predicted_skills')
-                    expander = st.expander('Predicted Skills', expanded=True)
-                    expander.dataframe(df, hide_index=True)
-            except JSONDecodeError:
-                continue
+            with st.chat_message('assistant'):
+                print(content)
+                st.write(content)
+            # try:
+            #     _json = json.loads(content)
+            #     if 'skills' in _json:
+            #         df = skills_json_to_df(_json, 'skills')
+            #         expander = st.expander('Skills', expanded=True)
+            #         expander.dataframe(df, hide_index=True)
+            #     if 'predicted_skills' in _json:
+            #         skills_json_to_df(_json, 'predicted_skills')
+            #         expander = st.expander('Predicted Skills', expanded=True)
+            #         expander.dataframe(df, hide_index=True)
+            # except JSONDecodeError:
+            #     continue
 
 if not has_history:
     st.write('There are no messages. Interact with the chat first.')
