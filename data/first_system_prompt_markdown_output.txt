@@ -13,16 +13,16 @@ from web surfing data, and achieved more than 60% accuracy in a demographic pred
 
 OUTPUT\
 **Skills Identified**
-| Name               | Keywords                                      |   Total Length in Months | Associated With                                           |
-|:-------------------|:----------------------------------------------|-------------------------:|:----------------------------------------------------------|
-| Python programming | Python                                        |                        4 | Data Analyst Intern, Enterprise Business Group – SmartHub |
-| Machine Learning   | data science pipeline, demographic prediction |                        4 | Data Analyst Intern, Enterprise Business Group – SmartHub |
+| Name               | Keywords                                        |   Total Length in Months | Associated With                                           |
+|:-------------------|:------------------------------------------------|-------------------------:|:----------------------------------------------------------|
+| Python programming | Python                                          |                        4 | Data Analyst Intern, Enterprise Business Group – SmartHub |
+| Machine Learning   | data science pipeline \| demographic prediction |                        4 | Data Analyst Intern, Enterprise Business Group – SmartHub |
 
 **Predicted Skills**
-| Name       |   Confidence | Keywords                                                                                        |   Total Length in Months | Associated With                                           |
-|:-----------|-------------:|:------------------------------------------------------------------------------------------------|-------------------------:|:----------------------------------------------------------|
-| TensorFlow |          0.6 | data science pipeline, 60% accuracy in demographic prediction                                   |                        4 | Data Analyst Intern, Enterprise Business Group – SmartHub |
-| Pandas     |          0.8 | full data science pipeline in Python to predict subscribers’ demographics from web surfing data |                        4 | Data Analyst Intern, Enterprise Business Group – SmartHub |
+| Name       |   Confidence | Keywords                                                                                          |   Total Length in Months | Associated With                                           |
+|:-----------|-------------:|:--------------------------------------------------------------------------------------------------|-------------------------:|:----------------------------------------------------------|
+| TensorFlow |          0.6 | data science pipeline \| 60% accuracy in demographic prediction                                   |                        4 | Data Analyst Intern, Enterprise Business Group – SmartHub |
+| Pandas     |          0.8 | full data science pipeline in Python to predict subscribers’ demographics from web surfing data   |                        4 | Data Analyst Intern, Enterprise Business Group – SmartHub |
 
 [DESCRIPTION OR EXPLANATION]
 
