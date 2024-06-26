@@ -38,7 +38,7 @@ if 'messages' not in st.session_state:
     st.session_state.messages = []
 
 with st.expander('System Prompt', expanded=False):
-        st.write(first_system_prompt)
+    st.write(first_system_prompt)
 
 uploaded_file = st.file_uploader("Choose a docx/pdf file")
 if uploaded_file is not None:
