@@ -93,7 +93,7 @@ We resolved the issue by spinning up CosmosDB manually via the console and used 
 
 - CosmosDB Connection Session Expiration
 
-While loading the skills data into CosmosDB, the cursor repeatedly timed out despite setting `no_cursor_timeout=True`. As a result, we were unable to load our data into CosmosDB. We solved this by implementing a recursive solution to carry on the data loading in a new session from where the previous cursor has left off.
+While generating the embeddings to store as vector field in CosmosDB, the cursor repeatedly timed out despite setting `no_cursor_timeout=True`. As a result, we were unable to load our data into CosmosDB. We solved this by implementing a recursive solution to carry on the data loading in a new session from where the previous cursor has left off.
 
 ```python
 def add_collection_content_vector_field(self, collection_name: str):
