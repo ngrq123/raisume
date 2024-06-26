@@ -75,9 +75,75 @@ The chat history page displays all messages, from both the resume analyser and c
 
 ## Challenges Faced
 
-- MongoDB cursor auto closing
-- SKU S0
+- SKU S0 & 'Warm'
+
+To get started, we had to spin up the necessary resources such as CosmosDB and Azure OpenAI. We ran the bicep file provided in the dev guide. Unfortunately, the following errors were thrown:
+
+- CosmosDB
+```
+The maximum cores for workload profile Warm cannot be more than 0.
+```
+
+- Azure OpenAI
+```
+The subscription does not have QuataId/Feature required by SKU 'S0' from kind 'openAI' or contains blocked QuotaID/Feature
+```
+
+We resolved the issue by spinning up CosmosDB manually via the console and used Azure's proxy OpenAI instead of Azure OpenAI.
+
+- CosmosDB Connection Session Expiration
+
+While loading the skills data into CosmosDB, the cursor repeatedly timed out despite setting `no_cursor_timeout=True`. As a result, we were unable to load our data into CosmosDB. We solved this by implementing a recursive solution to carry on the data loading in a new session from where the previous cursor has left off.
+
+```python
+def add_collection_content_vector_field(self, collection_name: str):
+        '''
+        Add a new field to the collection to hold the vectorized content of each document.
+        '''
+        collection = self.db[collection_name]
+        
+        def process_documents(skip_count=0):
+            try:
+                with collection.find({}, no_cursor_timeout=True).skip(skip_count) as cursor:
+                    for doc in cursor:
+                        # Remove any previous contentVector embeddings
+                        if "contentVector" in doc:
+                            del doc["contentVector"]
+
+                        # Generate embeddings for the document string representation
+                        content = json.dumps(doc, default=str)
+                        content_vector = self.generate_embeddings(content)
+
+                        collection.update_one(
+                            {"_id": doc["_id"]},
+                            {"$set": {"contentVector": content_vector}},
+                            upsert=True
+                        )
+                        
+                        # Keep track of processed documents
+                        skip_count += 1
+
+            except pymongo.errors.CursorNotFound:
+                logger.error("Cursor expired. Resuming from last processed document.")
+                process_documents(skip_count)  # Recursively continue from the last processed document
+            except Exception as e:
+                logger.error(f"Error processing documents: {e}")
+                raise
+
+        # Start processing documents
+        process_documents()
+```
+
 - Error 422 invalid string (Langchain)
+
+We encountered the following error when attempting to perform a vector search  using Langchain AzureCosmosDBVectorSearch class:
+
+```python
+UnprocessableEntityError: Error code: 422 - {'detail': [{'type': 'string_type', 'loc': ['body', 'input', 'str'], 'msg': 'Input should be a valid string', 'input': [[3923, 14071, 3956, 527, 1070, 30]]}, {'type': 'string_type', 'loc': ['body', 'input', 'list[str]', 0], 'msg': 'Input should be a valid string', 'input': [3923, 14071, 3956, 527, 1070, 30]}]}
+```
+
+We continued to encounter this error despite trying out different Langchain versions. Thankfully, we were able utilize CosmosDB vector search as a perfect alternative to Langchain.
+
 - Error 500 from ChatGPT
 - Tokens exceeded
 
