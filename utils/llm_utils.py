@@ -1,3 +1,4 @@
+import json
 import os
 
 from dotenv import load_dotenv
@@ -24,24 +25,18 @@ def get_llm_response(chat_client, messages, response_format='auto', stream=False
                                         response_format=response_format,
                                         stream=stream)
     
-    # if isinstance(response_format, dict) and response_format['type'] == 'json_object':
+    if isinstance(response_format, dict) and response_format['type'] == 'json_object':
         # Check if valid json
-        # valid_json = False
-        # while not valid_json:
-        #     # response = chat_client.chat.completions.create(messages=[{'role': m['role'], 'content': m['content']} for m in message_history], 
-        #     #                                             model=os.getenv('MODEL_NAME'), 
-        #     #                                             response_format={'type': 'json_object'},
-        #     #                                             stream=False)
-        #     # response_message = response.choices[0].message.content
-
-        #     response = (chat_client, message_history, stream=True)
-        #     response_message = response.choices[0].message.content
-            
-        #     try:
-        #         json.loads(response_message)
-        #         valid_json = True
-        #     except ValueError:
-        #         continue
-        # st.json(response_message)
+        num_retries = 0
+        valid_json = False
+        while (not valid_json) and (num_retries <= 3):
+            response_message = response.choices[0].message.content
+            try:
+                json.loads(response_message)
+                valid_json = ('skills' in response_message) and ('predicted_skills' in response_message)
+            except ValueError:
+                # Get another response
+                num_retries += 1
+                response = get_llm_response(chat_client, messages, response_format, stream)
 
     return response
